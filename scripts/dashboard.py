@@ -2,28 +2,32 @@ import redis
 
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
-def display_dashboard():
-    print("\n=== DASHBOARD TEMPS RÉEL ===")
-    
-    # 1. Commandes par statut [cite: 98]
-    attente = r.scard("orders:status:en_attente")
-    assignees = r.scard("orders:status:assignee")
-    livrees = r.scard("orders:status:livree")
-    print(f"Commandes : {attente} en attente, {assignees} assignées, {livrees} livrées")
-    
-    # 2. Livraisons par livreur [cite: 99]
-    print("\nCharge des livreurs :")
-    for d_id in ["d1", "d2", "d3", "d4"]:
-        nom = r.hget(f"driver:{d_id}", "nom")
-        encours = r.hget(f"driver:{d_id}", "encours")
-        print(f"- {nom} ({d_id}) : {encours} livraison(s) en cours")
+def afficher_tout():
+    print("DASHBOARD TEMPS RÉEL")
 
-    # 3. Top 2 livreurs [cite: 100]
-    top = r.zrevrange("drivers:ratings", 0, 1, withscores=True)
-    print("\nTop 2 Meilleurs Livreurs :")
-    for d_id, score in top:
+    # --- LIVREURS (Travail n°1 & 6) ---
+    print("\n[LIVREURS ACTIFS]")
+    # On récupère le classement via le Sorted Set [cite: 70-71]
+    top_drivers = r.zrevrange("drivers:ratings", 0, -1, withscores=True)
+    for d_id, rating in top_drivers:
+        # On récupère le reste des infos dans le Hash [cite: 68]
+        info = r.hgetall(f"driver:{d_id}")
+        print(f"ID: {d_id} | {info['nom']} | Région: {info['region']} | {rating}/5 | En cours: {info.get('encours', 0)}")
+
+    # --- COMMANDES (Travail n°4 & 6) --- [cite: 87, 98]
+    for statut in ["en_attente", "assignee", "livree"]:
+        ids = r.smembers(f"orders:status:{statut}")
+        print(f"\n[COMMANDES {statut.upper()}] ({len(ids)} commande(s))")
+        for c_id in ids:
+            details = r.hgetall(f"order:{c_id}") # Récupère les détails du prof [cite: 75-76]
+            print(f"  - {c_id}: {details['client']} -> {details['destination']} ({details['montant']}€)")
+
+    # --- MEILLEUR LIVREUR (Travail n°4) --- [cite: 90]
+    best = r.zrevrange("drivers:ratings", 0, 0, withscores=True)
+    if best:
+        d_id, score = best[0]
         nom = r.hget(f"driver:{d_id}", "nom")
-        print(f"- {nom} : {score}/5")
+        print(f"\n Meilleur livreur actuel : {nom} ({score}/5)")
 
 if __name__ == "__main__":
-    display_dashboard()
+    afficher_tout()
