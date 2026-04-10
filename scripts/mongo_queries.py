@@ -4,7 +4,7 @@ def execute_analyses():
     # Connexion à MongoDB
     client = MongoClient("mongodb://localhost:27017/")
     db = client["projet_livraison"]
-    # Harmonisation sur la collection "deliveries" pour que les requêtes fonctionnent
+    # Harmonisation sur la collection "historique_livraison" pour que les requêtes fonctionnent
     collection = db["historique_livraison"]
 
     print("=== HISTORIQUE DU LIVREUR D1 ===")
