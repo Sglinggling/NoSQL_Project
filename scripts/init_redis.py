@@ -34,7 +34,7 @@ def init_db():
         data["created_at"] = int(time.time())
         # Stockage commande (Hash)
         r.hset(f"order:{c_id}", mapping=data)
-        # Groupement par statut (Set) [cite: 77-78]
+        # Groupement par statut (Set) 
         r.sadd("orders:status:en_attente", c_id)
 
     print("Initialisation terminée : 4 livreurs et 4 commandes créés.")

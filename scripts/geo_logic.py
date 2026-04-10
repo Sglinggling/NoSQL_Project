@@ -3,13 +3,13 @@ import redis
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 def init_geo():
-    # 1. Stocker les lieux de livraison
+    # 1. Stocker les lieux de livraison 
     r.geoadd("delivery_points", [2.364, 48.861, "Marais"])
     r.geoadd("delivery_points", [2.379, 48.870, "Belleville"])
     r.geoadd("delivery_points", [2.381, 48.840, "Bercy"])
     r.geoadd("delivery_points", [2.254, 48.851, "Auteuil"])
 
-    # 2. Stocker les positions des livreurs
+    # 2. Stocker les positions des livreurs 
     r.geoadd("drivers_locations", [2.365, 48.862, "d1"])
     r.geoadd("drivers_locations", [2.378, 48.871, "d2"])
     r.geoadd("drivers_locations", [2.320, 48.920, "d3"])
@@ -52,7 +52,7 @@ def trouver_proches():
 def affectation_optimale(lieu="Marais"):
     print(f"\nAffectation optimale pour le {lieu} ---")
     
-    # 1. Récupérer la position du lieu
+    # 1. Récupérer la position du lieu 
     pos = r.geopos("delivery_points", lieu)
     if not pos or not pos[0]: return
     lon, lat = pos[0]
@@ -76,8 +76,8 @@ def affectation_optimale(lieu="Marais"):
 
     if liste_candidats:
         meilleur = max(liste_candidats, key=lambda x: x['rating'])
-        print(f"Meilleur choix trouvé : {meilleur['id']}")
-        return meilleur['id']  # <--- AJOUTE CETTE LIGNE
+        print(f"👉 Meilleur choix trouvé : {meilleur['id']}")
+        return meilleur['id'] 
     return None
 
 if __name__ == "__main__":
