@@ -76,7 +76,7 @@ def affectation_optimale(lieu="Marais"):
 
     if liste_candidats:
         meilleur = max(liste_candidats, key=lambda x: x['rating'])
-        print(f"👉 Meilleur choix trouvé : {meilleur['id']}")
+        print(f"Meilleur choix trouvé : {meilleur['id']}")
         return meilleur['id']  # <--- AJOUTE CETTE LIGNE
     return None
 
