@@ -1,5 +1,7 @@
 # Projet NoSQL Livraison
 
+**Ananda CASSINI, Samy HALIT, Thomas RIPOLL M1-DE3**
+
 Système de gestion de livraisons en temps réel combinant **Redis** (temps réel) et **MongoDB** (historique et analyses), avec géolocalisation et optimisation par cache.
 
 ---
