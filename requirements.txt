@@ -1,0 +1,3 @@
+# Bibliothèques nécessaires pour piloter les bases de données
+redis
+pymongo

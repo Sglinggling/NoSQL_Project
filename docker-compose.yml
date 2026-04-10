@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: projet_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:latest
+    container_name: projet_mongodb
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+  # Optionnel : Une interface graphique web pour visualiser MongoDB facilement
+  mongo-express:
+    image: mongo-express
+    container_name: projet_mongo_express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+    depends_on:
+      - mongodb
