@@ -1,6 +1,10 @@
 import redis
 from pymongo import MongoClient
 from datetime import datetime
+import sys
+
+# Connexion globale Redis
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
     """
@@ -10,7 +14,6 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
     
     # 1. Connexions aux services
     try:
-        r = redis.Redis(host='localhost', port=6379, decode_responses=True)
         mongo_client = MongoClient("mongodb://localhost:27017/")
         db_mongo = mongo_client["projet_livraison"]
         collection_deliveries = db_mongo["historique_livraison"]
@@ -33,7 +36,7 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
         "driver_id": livreur_id,
         "driver_name": livreur_data.get("nom"),
         "delivery_time": datetime.now(), 
-        "duration_minutes": 20, 
+        "duration_minutes": 20, # On peut simuler une durée
         "amount": float(commande_data.get("montant", 0)),
         "region": livreur_data.get("region"),
         "rating": float(note_client),
@@ -46,18 +49,38 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
     if result.inserted_id:
         print(f"✓ Synchronisation réussie : Livraison {commande_id} archivée dans MongoDB.")
 
-        # 5. Mise à jour de Redis (CORRECTION DES PRÉFIXES ET DES NOMS DE CHAMPS)
-        r.hset(f"order:{commande_id}", "statut", "livree")
-        # Ton init_redis utilise 'encours' et 'finies' comme noms de champs
-        r.hincrby(f"driver:{livreur_id}", "encours", -1) 
-        r.hincrby(f"driver:{livreur_id}", "finies", 1)
+        # 5. Mise à jour de Redis (ATOMICITÉ VIA PIPELINE)
+        pipe = r.pipeline()
         
-        print(f"✓ État Redis mis à jour : {livreur_id} a terminé sa course.")
+        # Changement du statut dans le Hash
+        pipe.hset(f"order:{commande_id}", "statut", "livree")
+        
+        # --- CORRECTION : DÉPLACEMENT ENTRE LES SETS ---
+        pipe.srem("orders:status:assignee", commande_id)
+        pipe.sadd("orders:status:livree", commande_id)
+        # -----------------------------------------------
+
+        # Mise à jour des compteurs du livreur
+        pipe.hincrby(f"driver:{livreur_id}", "encours", -1) 
+        pipe.hincrby(f"driver:{livreur_id}", "finies", 1)
+        
+        pipe.execute()
+        print(f"État Redis mis à jour : {livreur_id} est libre et {commande_id} est marquée livrée.")
 
 if __name__ == "__main__":
-    cloturer_et_synchroniser(
-        commande_id="c1", 
-        livreur_id="d3", 
-        avis_client="Excellent service, très rapide !", 
-        note_client=4.9
-    )
+    if len(sys.argv) < 2:
+        print("Usage: python3 scripts/sync_redis_to_mongo.py <order_id>")
+    else:
+        c_id = sys.argv[1]
+        # On va chercher QUI était le livreur assigné
+        d_id = r.get(f"assignment:{c_id}")
+        
+        if d_id:
+            cloturer_et_synchroniser(
+                commande_id=c_id, 
+                livreur_id=d_id, 
+                avis_client="Livraison impeccable, chauffeur très pro !", 
+                note_client=5.0
+            )
+        else:
+            print(f"Erreur : La commande {c_id} n'est assignée à personne dans Redis.")
