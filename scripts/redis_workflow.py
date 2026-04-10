@@ -50,11 +50,9 @@ if __name__ == "__main__":
         commande = sys.argv[1]
         
         if commande == "assign" and len(sys.argv) == 4:
-            # Exemple : python3 scripts/redis_workflow.py assign c1 d3
             affecter_commande(sys.argv[2], sys.argv[3])
         
         elif commande == "deliver" and len(sys.argv) == 3:
-            # Exemple : python3 scripts/redis_workflow.py deliver c1
             terminer_livraison(sys.argv[2])
         
         else:

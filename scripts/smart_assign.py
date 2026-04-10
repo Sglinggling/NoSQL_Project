@@ -13,10 +13,8 @@ def auto_assign(order_id):
 
     print(f"Recherche du meilleur livreur pour {order_id} (Destination: {destination})...")
 
-    # 2. On appelle ton module Géo pour trouver le candidat
     best_driver_id = affectation_optimale(destination)
 
-    # 3. On utilise ton module Workflow pour l'affecter atomiquement
     if best_driver_id:
         affecter_commande(order_id, best_driver_id)
         print(f"Liaison réussie entre Géo et Workflow pour {order_id}")

@@ -12,7 +12,7 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
     vers l'historique MongoDB.
     """
     
-    # 1. Connexions aux services
+    # Connexions aux services
     try:
         mongo_client = MongoClient("mongodb://localhost:27017/")
         db_mongo = mongo_client["projet_livraison"]
@@ -21,7 +21,7 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
         print(f"Erreur de connexion : {e}")
         return
 
-    # 2. Récupération des données 
+    # Récupération des données 
     commande_data = r.hgetall(f"order:{commande_id}") 
     livreur_data = r.hgetall(f"driver:{livreur_id}")
 
@@ -29,7 +29,7 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
         print(f"Erreur : Données introuvables pour {commande_id} ou {livreur_id}")
         return
 
-    # 3. Préparation du document pour MongoDB
+    # Préparation du document pour MongoDB
     historique_doc = {
         "command_id": commande_id,
         "client": commande_data.get("client"),
@@ -44,18 +44,17 @@ def cloturer_et_synchroniser(commande_id, livreur_id, avis_client, note_client):
         "status": "completed"
     }
 
-    # 4. Insertion dans MongoDB
+    # Insertion dans MongoDB
     result = collection_deliveries.insert_one(historique_doc)
     if result.inserted_id:
-        print(f"✓ Synchronisation réussie : Livraison {commande_id} archivée dans MongoDB.")
+        print(f"Synchronisation réussie : Livraison {commande_id} archivée dans MongoDB.")
 
-        # 5. Mise à jour de Redis (ATOMICITÉ VIA PIPELINE)
+        # Mise à jour de Redis
         pipe = r.pipeline()
         
         # Changement du statut dans le Hash
         pipe.hset(f"order:{commande_id}", "statut", "livree")
         
-        # --- CORRECTION : DÉPLACEMENT ENTRE LES SETS ---
         pipe.srem("orders:status:assignee", commande_id)
         pipe.sadd("orders:status:livree", commande_id)
         # -----------------------------------------------
@@ -72,7 +71,6 @@ if __name__ == "__main__":
         print("Usage: python3 scripts/sync_redis_to_mongo.py <order_id>")
     else:
         c_id = sys.argv[1]
-        # On va chercher QUI était le livreur assigné
         d_id = r.get(f"assignment:{c_id}")
         
         if d_id:

@@ -4,7 +4,6 @@ def execute_analyses():
     # Connexion à MongoDB
     client = MongoClient("mongodb://localhost:27017/")
     db = client["projet_livraison"]
-    # Harmonisation sur la collection "historique_livraison" pour que les requêtes fonctionnent
     collection = db["historique_livraison"]
 
     print("=== HISTORIQUE DU LIVREUR D1 ===")
@@ -40,7 +39,7 @@ def execute_analyses():
             "$group": {
                 "_id": "$region",
                 "nombre_livraisons": {"$sum": 1}, 
-                "revenu_total": {"$sum": "$amount"}, # Ajout de la virgule manquante
+                "revenu_total": {"$sum": "$amount"},
                 "duree_moyenne": {"$avg": "$duration_minutes"},
                 "rating_moyen": {"$avg": "$rating"}
             }
@@ -67,7 +66,7 @@ def execute_analyses():
         {
             "$group": {
                 "_id": "$driver_id",
-                # On récupère le nom (on prend le premier rencontré)
+                # On récupère le nom
                 "driver_name": {"$first": "$driver_name"}, 
                 "nb_livraisons": {"$sum": 1},
                 "revenu_total": {"$sum": "$amount"},

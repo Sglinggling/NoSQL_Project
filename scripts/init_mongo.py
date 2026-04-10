@@ -7,9 +7,7 @@ def init_mongodb():
     # Création (ou sélection) de la base de données du projet
     db = client["projet_livraison"]
     
-# ==========================================
     # 3. INITIALISATION DE L'HISTORIQUE (Historique livraison)
-    # ==========================================
     collection_deliveries = db["historique_livraison"]
     collection_deliveries.drop()
 
