@@ -8,7 +8,7 @@ def init_mongodb():
     db = client["projet_livraison"]
     
 # ==========================================
-    # 3. INITIALISATION DE L'HISTORIQUE (Deliveries)
+    # 3. INITIALISATION DE L'HISTORIQUE (Historique livraison)
     # ==========================================
     collection_deliveries = db["historique_livraison"]
     collection_deliveries.drop()
@@ -57,7 +57,7 @@ def init_mongodb():
     ]
 
     collection_deliveries.insert_many(deliveries)
-    print(f"Succès ! {len(deliveries)} livraisons historiques insérées dans 'deliveries'.")
+    print(f"Succès ! {len(deliveries)} livraisons historiques insérées dans 'historique_livraison'.")
 
 if __name__ == "__main__":
     init_mongodb()
